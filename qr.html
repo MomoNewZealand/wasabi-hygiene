@@ -8,32 +8,66 @@
 <link rel="icon" href="icons/admin-192.png" sizes="192x192">
 <link rel="stylesheet" href="style.css">
 <style>
-  /* この台紙だけの見た目。印刷して現場に貼るためのページ */
-  .qr-sheet { max-width: 820px; margin: 0 auto; padding: 18px 14px 40px; }
+  /* この台紙だけの見た目。
+     印刷すると拠点ごとに1枚ずつ、A4 縦で出る（3拠点なので3枚）。
+     現場の壁に貼るものなので、画面で見るときより大きめに組んでいる */
+
+  .qr-sheet { max-width: 720px; margin: 0 auto; padding: 18px 14px 40px; }
   .qr-lead { color: var(--ink-2); font-size: 14px; margin-bottom: 18px; }
 
   .qr-card {
     background: #fff;
-    border: 2px solid var(--charcoal);
+    border: 3px solid var(--charcoal);
     border-radius: 16px;
-    padding: 22px 18px 18px;
+    padding: 26px 20px 20px;
     text-align: center;
-    margin-bottom: 18px;
-    break-inside: avoid;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
-  .qr-card h2 { font-size: 22px; margin-bottom: 2px; }
-  .qr-card .qr-sub { color: var(--ink-3); font-size: 13px; }
-  .qr-box { display: grid; place-items: center; margin: 14px 0 10px; }
-  .qr-box img, .qr-box canvas { display: block; }
-  .qr-how { font-size: 14px; font-weight: 700; }
-  .qr-url { font-size: 11px; color: var(--ink-3); word-break: break-all; margin-top: 6px; }
+  .qr-card h2 { font-size: 26px; line-height: 1.25; }
+  .qr-card .qr-sub { color: var(--ink-3); font-size: 14px; }
+
+  .qr-box { display: grid; place-items: center; margin: 16px 0 12px; }
+  /* 読みこませる部品は 640px で作って、表示だけ縮める。
+     こうすると印刷したときに輪郭がぼやけない */
+  .qr-box canvas, .qr-box img { display: block; width: 240px; height: 240px; }
+
+  .qr-how { font-size: 17px; font-weight: 700; line-height: 1.5; }
+  .qr-how b { color: var(--green); }
+  .qr-url { font-size: 11px; color: var(--ink-3); word-break: break-all; margin-top: 10px; }
   .qr-miss { color: var(--danger); font-size: 13px; }
 
   @media print {
     @page { size: A4 portrait; margin: 12mm; }
+
     .no-print { display: none !important; }
+    body { background: #fff; }
     .qr-sheet { max-width: none; padding: 0; }
-    .qr-card { border-color: #000; margin-bottom: 14mm; }
+
+    /* 1拠点＝1枚。最後の1枚のあとに空白ページを作らない */
+    .qr-card {
+      height: 245mm;
+      margin: 0;
+      border: 3px solid #000;
+      border-radius: 10mm;
+      break-after: page;
+      break-inside: avoid;
+      gap: 0;
+    }
+    .qr-card:last-child { break-after: auto; }
+
+    .qr-card h2 { font-size: 40pt; }
+    .qr-card .qr-sub { font-size: 14pt; margin-top: 4mm; }
+    .qr-box { margin: 14mm 0 10mm; }
+    .qr-box canvas, .qr-box img { width: 105mm; height: 105mm; }
+    .qr-how { font-size: 18pt; }
+    .qr-url { font-size: 8pt; margin-top: 8mm; }
+
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
@@ -45,7 +79,8 @@
 
 <div class="qr-sheet">
   <p class="qr-lead no-print">
-    印刷して、それぞれの場所（工場の入口、キッチンカーの中）に貼ってください。
+    印刷すると、拠点ごとに<b>1枚ずつ（全3枚）</b>出ます。
+    それぞれの場所（工場の入口、キッチンカーの中）に貼ってください。
     スマホのカメラを向けるだけで、その場所の記録画面が開きます。
   </p>
   <div id="cards"></div>
@@ -58,12 +93,16 @@
   var base = location.href.replace(/qr\.html.*$/, '') + 'index.html';
 
   var html = SITES.map(function (s) {
+    /* 工場は「作業前・作業後」、キッチンカーは「営業前・営業後」と呼び分ける */
+    var before = timingLabel('before', s);
+    var after = timingLabel('after', s);
     return (
       '<div class="qr-card">' +
       '<h2>' + esc(s.name) + '</h2>' +
       '<p class="qr-sub">' + esc(s.sub) + '</p>' +
       '<div class="qr-box" id="qr-' + esc(s.key) + '"></div>' +
-      '<p class="qr-how">作業の前と後に、ここを読みとって記録してください</p>' +
+      '<p class="qr-how"><b>' + esc(before) + '</b> と <b>' + esc(after) + '</b> に<br>' +
+      'ここを読みとって記録してください</p>' +
       '<p class="qr-url">' + esc(base + '?site=' + s.key) + '</p>' +
       '</div>'
     );
@@ -81,8 +120,8 @@
     }
     new QRCode(box, {
       text: base + '?site=' + s.key,
-      width: 220,
-      height: 220,
+      width: 640,
+      height: 640,
       colorDark: '#2b3134',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M,
