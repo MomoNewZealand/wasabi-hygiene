@@ -42,30 +42,36 @@
   .qr-miss { color: var(--danger); font-size: 13px; }
 
   @media print {
-    @page { size: A4 portrait; margin: 12mm; }
+    /* 用紙の四辺に 10mm ずつ白を残し、枠はその内側いっぱいに広げる。
+       こうすると、貼ったときに枠が紙の真ん中にくる */
+    @page { size: A4 portrait; margin: 10mm; }
 
     .no-print { display: none !important; }
     body { background: #fff; }
     .qr-sheet { max-width: none; padding: 0; }
 
-    /* 1拠点＝1枚。最後の1枚のあとに空白ページを作らない */
+    /* 1拠点＝1枚。最後の1枚のあとに空白ページを作らない。
+       高さは 297 − 上下の余白 20 ＝ 277mm のうち 275mm。
+       2mm 残してあるのは、端数で次のページに落ちるのを防ぐため */
     .qr-card {
-      height: 245mm;
+      width: 100%;
+      height: 275mm;
       margin: 0;
+      padding: 12mm;
       border: 3px solid #000;
-      border-radius: 10mm;
+      border-radius: 8mm;
       break-after: page;
       break-inside: avoid;
       gap: 0;
     }
     .qr-card:last-child { break-after: auto; }
 
-    .qr-card h2 { font-size: 40pt; }
-    .qr-card .qr-sub { font-size: 14pt; margin-top: 4mm; }
-    .qr-box { margin: 14mm 0 10mm; }
-    .qr-box canvas, .qr-box img { width: 105mm; height: 105mm; }
-    .qr-how { font-size: 18pt; }
-    .qr-url { font-size: 8pt; margin-top: 8mm; }
+    .qr-card h2 { font-size: 44pt; }
+    .qr-card .qr-sub { font-size: 15pt; margin-top: 5mm; }
+    .qr-box { margin: 18mm 0 14mm; }
+    .qr-box canvas, .qr-box img { width: 120mm; height: 120mm; }
+    .qr-how { font-size: 20pt; }
+    .qr-url { font-size: 8pt; margin-top: 12mm; }
 
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
