@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>衛生管理計画 | TOKYO WASABI</title>
+<meta name="description" content="TOKYO WASABI の衛生管理計画">
+<meta name="theme-color" content="#2b3134">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+</head>
+<body>
+
+<header class="app-head no-print" id="head">
+  <div class="head-top"><h1>衛生管理計画<span class="head-sub">TOKYO WASABI</span></h1></div>
+</header>
+
+<main id="app"></main>
+
+<script>
+/* ===========================================================
+   衛生管理計画を画面に出す。
+
+   保健所は「衛生管理計画」と「記録表」の両方の提示を求めます。
+   このページの中身は common.js の中にあるので、
+   一度でもアプリを開いていれば、電波が届かない現場でも開けます。
+   =========================================================== */
+'use strict';
+
+const PLAN_NAME = {
+  factory: '漬物製造およびそうざい製造における衛生管理計画',
+  shokudo: '一般飲食店における衛生管理計画',
+};
+
+/* URL に ?site= があればその拠点。なければ最初の拠点 */
+function pickSite() {
+  const key = new URLSearchParams(location.search).get('site');
+  return (key && SITE_BY_KEY[key]) || SITES[0];
+}
+
+let site = pickSite();
+
+function render() {
+  const ippan = itemsFor(site).filter(function (i) {
+    return i.group === 'ippan';
+  });
+  const juyo = itemsFor(site).filter(function (i) {
+    return i.group === 'juyo' && i.type !== 'text';
+  });
+
+  document.getElementById('app').innerHTML =
+    '<div class="wrap admin-wrap">' +
+    /* 拠点の切り替え。印刷には出さない */
+    '<div class="pick no-print">' +
+    '<label>拠点<select id="site">' +
+    SITES.map(function (s) {
+      return (
+        '<option value="' + esc(s.key) + '"' + (s.key === site.key ? ' selected' : '') + '>' +
+        esc(s.name) + '</option>'
+      );
+    }).join('') +
+    '</select></label>' +
+    '<span class="pick-gap"></span>' +
+    '<button type="button" id="print" class="btn btn-ghost">' + icon('print') + '印刷・PDF</button>' +
+    '</div>' +
+
+    '<div class="sheet-title"><b>' + esc(site.name) + '</b><span>' +
+    esc(PLAN_NAME[site.plan]) + '</span></div>' +
+
+    /* 一般的衛生管理 */
+    '<section class="sheet">' +
+    '<h2 class="sheet-h"><span class="sheet-h-where">' + esc(site.name) + '</span>' +
+    '一般的衛生管理のポイント</h2>' +
+    '<div class="table-scroll"><table class="grid plan-grid"><thead><tr>' +
+    '<th class="c-day"></th><th class="p-name">項目</th><th class="p-when">いつ</th>' +
+    '<th class="p-how">どのように</th><th class="p-ng">問題があったとき</th>' +
+    '</tr></thead><tbody>' +
+    ippan.map(function (it) {
+      return (
+        '<tr>' +
+        '<td class="c-day">' + esc(it.no) + '</td>' +
+        '<td class="p-name">' + esc(it.name) + '</td>' +
+        '<td class="p-when">' + esc(it.whenText || '') + '</td>' +
+        '<td class="p-how">' + esc(textFor(it, 'how', site)) + '</td>' +
+        '<td class="p-ng">' + esc(textFor(it, 'ng', site)) + '</td>' +
+        '</tr>'
+      );
+    }).join('') +
+    '</tbody></table></div></section>' +
+
+    /* 重要管理 */
+    '<section class="sheet">' +
+    '<h2 class="sheet-h"><span class="sheet-h-where">' + esc(site.name) + '</span>' +
+    '⑤ 重要管理のポイント</h2>' +
+    '<div class="table-scroll"><table class="grid plan-grid"><thead><tr>' +
+    '<th class="c-day">分類</th><th class="p-name">区分</th>' +
+    '<th class="p-when">メニュー</th><th class="p-how" colspan="2">チェック方法</th>' +
+    '</tr></thead><tbody>' +
+    juyo.map(function (it) {
+      return (
+        '<tr>' +
+        '<td class="c-day">' + esc(it.no) + '</td>' +
+        '<td class="p-name">' + esc(it.name) + '</td>' +
+        '<td class="p-when">' + esc(textFor(it, 'menu', site)) + '</td>' +
+        '<td class="p-how" colspan="2">' + esc(textFor(it, 'how', site)) + '</td>' +
+        '</tr>'
+      );
+    }).join('') +
+    '<tr><td colspan="3" class="p-name"><b>問題があった場合の対応方法</b></td>' +
+    '<td class="p-how" colspan="2">' + esc(juyo.length ? textFor(juyo[0], 'ng', site) : '') + '</td></tr>' +
+    '</tbody></table></div>' +
+    '<p class="sheet-foot">作成者サイン：＿＿＿＿＿＿＿＿　作成した日：＿＿＿＿年＿＿月＿＿日</p>' +
+    '</section>' +
+
+    '<p class="hint no-print">' +
+    'この内容は、保健所に出している衛生管理計画をそのまま写したものです。' +
+    '計画を変えたときは、アプリの項目（common.js）も一緒に直してください。' +
+    '</p>' +
+    '</div>';
+
+  document.getElementById('site').addEventListener('change', function (e) {
+    site = SITE_BY_KEY[e.target.value] || SITES[0];
+    render();
+  });
+  document.getElementById('print').addEventListener('click', function () {
+    window.print();
+  });
+}
+
+render();
+</script>
+</body>
+</html>

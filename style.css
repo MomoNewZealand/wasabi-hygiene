@@ -1,0 +1,726 @@
+/* ===== TOKYO WASABI 衛生記録 ===== */
+
+:root {
+  --green: #3a5a40;
+  --green-d: #2b4430;
+  --green-l: #e8efe9;
+  --charcoal: #2b3134;
+  --warn: #c47f16;
+  --warn-l: #fbf1de;
+  --danger: #b23b34;
+  --danger-l: #f8eae9;
+  --wait: #4a6072;
+  --wait-l: #e8eef2;
+
+  --bg: #f5f6f4;
+  --card: #ffffff;
+  --line: #e4e6e2;
+  --ink: #23292a;
+  --ink-2: #62706a;
+  --ink-3: #8b968f;
+
+  --r: 14px;
+  --r-s: 10px;
+  --shadow: 0 1px 2px rgba(35, 41, 42, .06), 0 1px 8px rgba(35, 41, 42, .04);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP", "Yu Gothic UI", "Segoe UI", Meiryo, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled, input:disabled, textarea:disabled { cursor: default; opacity: .55; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.svg { width: 1em; height: 1em; display: block; flex: none; }
+
+/* ===== ヘッダー ===== */
+
+.app-head {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--charcoal);
+  color: #fff;
+  padding: calc(10px + env(safe-area-inset-top)) 14px 0;
+}
+body.admin .app-head { background: var(--green); }
+
+.head-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding-bottom: 10px;
+}
+
+.head-top h1 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  flex: 1;
+  min-width: 0;
+}
+
+.head-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, .72);
+  margin-left: 8px;
+}
+
+.icon-btn {
+  background: rgba(255, 255, 255, .14);
+  border: 0;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  flex: none;
+}
+.icon-btn:active { background: rgba(255, 255, 255, .3); }
+.icon-btn.spin .svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== 共通の枠 ===== */
+
+.wrap {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 14px 14px calc(28px + env(safe-area-inset-bottom));
+}
+.admin-wrap { max-width: 1180px; }
+
+.lead { font-size: 17px; font-weight: 700; margin: 6px 0 14px; }
+.hint { color: var(--ink-3); font-size: 13px; margin-top: 16px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.card h2 { font-size: 14px; color: var(--ink-2); margin-bottom: 10px; }
+.card h2 .opt { font-weight: 400; color: var(--ink-3); font-size: 12px; margin-left: 8px; }
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-2);
+  font-size: 14px;
+  padding: 10px 2px;
+}
+
+.spinner {
+  width: 15px; height: 15px;
+  border: 2px solid var(--line);
+  border-top-color: var(--green);
+  border-radius: 999px;
+  animation: spin .8s linear infinite;
+  flex: none;
+}
+
+/* ===== 拠点えらび ===== */
+
+.site-list { display: grid; gap: 10px; }
+
+.site-btn {
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  display: grid;
+  gap: 2px;
+}
+.site-btn b { font-size: 17px; }
+.site-btn span { color: var(--ink-3); font-size: 13px; }
+.site-btn:active { background: var(--green-l); }
+
+/* ===== ホーム ===== */
+
+.date-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.date-bar input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 7px 10px;
+  background: var(--card);
+}
+.date-note {
+  background: var(--warn-l);
+  color: var(--warn);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.time-list { display: grid; gap: 12px; }
+
+.time-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.time-card.is-done { border-color: #cfe0d3; }
+
+.time-main {
+  width: 100%;
+  background: none;
+  border: 0;
+  text-align: left;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.time-main:active { background: var(--green-l); }
+
+.time-ico {
+  width: 46px; height: 46px;
+  border-radius: 999px;
+  background: var(--green-l);
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex: none;
+}
+.time-card.is-done .time-ico { background: var(--green); color: #fff; }
+
+.time-body { display: grid; gap: 4px; min-width: 0; }
+.time-body b { font-size: 18px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 10px;
+  width: fit-content;
+}
+.pill-done { background: var(--green-l); color: var(--green); }
+.pill-todo { background: #eef0ed; color: var(--ink-3); }
+.pill-wait { background: var(--wait-l); color: var(--wait); }
+.pill-sub { font-size: 12px; color: var(--ink-3); margin-left: 6px; }
+
+.time-fix {
+  width: 100%;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  padding: 11px;
+}
+.time-fix:active { background: var(--bg); }
+
+/* ===== お知らせの帯 ===== */
+
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-radius: var(--r);
+  padding: 13px 14px;
+  margin: 14px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.notice .svg { font-size: 18px; margin-top: 1px; }
+.notice b { display: block; font-size: 14px; }
+.notice p { color: inherit; opacity: .85; margin-top: 2px; }
+.notice button {
+  margin-left: auto;
+  flex: none;
+  background: #fff;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  align-self: center;
+}
+.notice-wait { background: var(--wait-l); color: var(--wait); }
+.notice-fix { background: var(--warn-l); color: var(--warn); }
+.notice-err { background: var(--danger-l); color: var(--danger); }
+.notice-done { background: var(--green-l); color: var(--green); }
+
+/* 衛生管理計画へのリンク（スタッフ用ホームの下） */
+.plan-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 14px;
+}
+.plan-link:active { background: var(--green-l); }
+
+/* ===== フォーム ===== */
+
+.form-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.back-btn {
+  background: none;
+  border: 0;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 14px;
+  padding: 6px 4px 6px 0;
+  flex: none;
+}
+.form-title { display: grid; min-width: 0; }
+.form-title b { font-size: 18px; }
+.form-title span { font-size: 13px; color: var(--ink-3); }
+
+.all-ok {
+  width: 100%;
+  background: var(--card);
+  border: 1px dashed #b9c8bd;
+  color: var(--green);
+  border-radius: var(--r);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.all-ok:active { background: var(--green-l); }
+
+.group { margin-bottom: 22px; }
+.group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  letter-spacing: .04em;
+  margin: 0 2px 8px;
+}
+
+.item.is-filled { border-color: #cfe0d3; }
+.item.is-ng { border-color: #e6c4c0; background: #fffbfa; }
+
+.item-head { display: flex; align-items: baseline; gap: 8px; }
+.item-no {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  background: var(--green-l);
+  border-radius: 6px;
+  padding: 1px 7px;
+  flex: none;
+}
+.item-head h3 { font-size: 16px; font-weight: 700; }
+
+.item-menu {
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--bg);
+  border-radius: var(--r-s);
+  padding: 7px 10px;
+  margin: 8px 0 0;
+}
+.item-how { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
+
+/* 良・否 */
+
+.choice { display: flex; gap: 8px; margin-top: 12px; }
+
+.ch {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r-s);
+  padding: 13px 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-3);
+  min-height: 50px;
+}
+.ch-na { font-size: 14px; }
+.ch-ok.on { background: var(--green); border-color: var(--green); color: #fff; }
+.ch-ng.on { background: var(--danger); border-color: var(--danger); color: #fff; }
+.ch-na.on { background: var(--ink-2); border-color: var(--ink-2); color: #fff; }
+
+/* 温度 */
+
+.temp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.temp-ico { color: var(--wait); font-size: 22px; }
+.temp-in {
+  width: 108px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: right;
+  background: var(--card);
+}
+.temp-unit { font-size: 17px; font-weight: 700; }
+.temp-limit { font-size: 12px; color: var(--ink-3); margin-left: auto; }
+.temp-row.over .temp-in { border-color: var(--danger); color: var(--danger); }
+
+.over-msg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* 「否」だったときの対応 */
+
+.ng-box {
+  margin-top: 12px;
+  border-top: 1px dashed #e6c4c0;
+  padding-top: 12px;
+}
+.ng-box label { display: block; font-size: 13px; font-weight: 700; color: var(--danger); }
+.ng-plan { font-size: 12px; color: var(--ink-3); margin: 3px 0 7px; }
+
+.text-in {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 11px;
+  background: var(--card);
+  font-size: 15px;
+  resize: vertical;
+}
+.ng-box .text-in { border-color: #e6c4c0; }
+
+/* 記録した人 */
+
+.staff-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.staff-btn {
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.staff-btn.on { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+
+/* 送信 */
+
+.submit-bar { margin-top: 20px; }
+.submit-btn {
+  width: 100%;
+  background: var(--green);
+  border: 0;
+  color: #fff;
+  border-radius: var(--r);
+  padding: 17px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.submit-btn:active { background: var(--green-d); }
+
+.shake { animation: shake .4s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ===== 管理画面 ===== */
+
+.pick {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.pick label { display: grid; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.pick select, .pick input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 9px 10px;
+  background: var(--card);
+}
+.pick-gap { flex: 1; }
+
+.btn {
+  border: 0;
+  background: var(--green);
+  color: #fff;
+  border-radius: var(--r-s);
+  padding: 10px 18px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-ghost { background: var(--card); color: var(--ink-2); border: 1px solid var(--line); }
+
+.summary {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+.ng-count { color: var(--danger); }
+
+/* 責任者が月に1回、記録を確認したことを残す欄 */
+.review-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--warn);
+  border-radius: var(--r-s);
+  padding: 13px 16px;
+  margin-bottom: 14px;
+}
+.review-box b { font-size: 15px; }
+.review-box p { font-size: 13px; color: var(--ink-3); margin: 2px 0 10px; }
+.review-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.review-row select, .review-row input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  padding: 9px 10px;
+  background: var(--card);
+}
+.review-row input { flex: 1; min-width: 200px; }
+
+.sheet-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+.sheet-title b { font-size: 19px; }
+.sheet-title span { font-size: 15px; color: var(--ink-2); }
+
+.sheet { margin-bottom: 26px; }
+.sheet-h {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+/* 拠点名と年月は、画面では上の見出しに出ているので隠す（紙のときだけ出す） */
+.sheet-h-where { display: none; }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.grid {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--card);
+  font-size: 13px;
+}
+.grid th, .grid td {
+  border: 1px solid #c9cdc7;
+  padding: 4px 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+.grid th {
+  background: var(--green-l);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  min-width: 62px;
+}
+.th-no { display: block; color: var(--green); font-size: 10px; }
+
+.grid .c-day { width: 34px; color: var(--ink-2); font-size: 12px; }
+.grid .c-note { min-width: 170px; text-align: left; font-size: 11px; }
+.grid .c-staff { min-width: 74px; font-size: 12px; }
+.grid .c-free { text-align: left; font-size: 11px; min-width: 110px; }
+.grid .c-ng { background: var(--danger-l); color: var(--danger); font-weight: 700; }
+.grid .c-na { color: var(--ink-3); }
+
+.grid tr.empty td { background: #fafbfa; }
+.grid tr.empty .c-day { color: var(--ink-3); }
+.grid tr.sun .c-day { color: #c0564e; }
+.grid tr.sat .c-day { color: #4a6072; }
+
+/* 紙の下につく責任者の確認欄 */
+.sheet-foot {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+/* 衛生管理計画の表。文章が長いので左ぞろえ */
+.plan-grid th { min-width: 0; }
+.plan-grid td { text-align: left; vertical-align: top; font-size: 12px; }
+.plan-grid .c-day { text-align: center; white-space: nowrap; }
+.plan-grid .p-name { min-width: 150px; font-weight: 700; }
+.plan-grid .p-when { min-width: 140px; }
+.plan-grid .p-how { min-width: 230px; }
+.plan-grid .p-ng { min-width: 200px; }
+
+/* ===== トースト ===== */
+
+.toasts {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 60;
+  display: grid;
+  gap: 8px;
+  padding: 0 12px;
+  justify-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--charcoal);
+  color: #fff;
+  border-radius: 999px;
+  padding: 11px 8px 11px 18px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 560px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .22);
+  animation: toast-in .22s ease-out;
+}
+.toast-error { background: var(--danger); }
+.toast-text { line-height: 1.4; }
+.toast-close {
+  background: rgba(255, 255, 255, .16);
+  border: 0;
+  color: #fff;
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.toast.out { animation: toast-out .2s ease-in forwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px); } }
+
+/* ===== 落ちたときの帯 ===== */
+
+.fatal {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 90;
+  background: var(--danger);
+  color: #fff;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  font-size: 13px;
+}
+.fatal code {
+  display: block;
+  margin-top: 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: rgba(0, 0, 0, .22);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+/* ===== 印刷（保健所に出す紙） ===== */
+
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+
+  body { background: #fff; font-size: 10px; }
+  .app-head, .no-print, .toasts, .fatal { display: none !important; }
+  .admin-wrap { max-width: none; padding: 0; }
+  .table-scroll { overflow: visible; }
+
+  /* 表ごとの見出しに拠点名と年月が入るので、いちばん上の見出しは出さない */
+  .sheet-title { display: none; }
+
+  /* 2枚目（重要管理）は新しいページから */
+  .sheet { break-inside: auto; margin-bottom: 0; }
+  .sheet + .sheet { break-before: page; }
+
+  .sheet-h {
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #000;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sheet-h-where { display: inline; font-size: 14px; }
+
+  .sheet-foot { font-size: 10px; color: #000; margin-top: 3mm; }
+
+  .grid { font-size: 9px; }
+  .grid th, .grid td { border: 1px solid #444; padding: 1px 3px; }
+  .plan-grid td { font-size: 9px; padding: 2px 4px; }
+  .grid th { background: #eee !important; font-size: 8px; min-width: 0; }
+  .grid .c-ng { background: #f2dedc !important; }
+  .grid tr.empty td { background: #fff; }
+
+  /* 行の途中でページが変わらないように */
+  .grid tr { break-inside: avoid; }
+  .grid thead { display: table-header-group; }
+
+  /* 色を紙にも出す */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
