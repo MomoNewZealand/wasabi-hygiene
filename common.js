@@ -316,7 +316,17 @@ function esc(v) {
 /** 空文字・null は null に。数値にできなければ null */
 function num(v) {
   if (v === '' || v == null) return null;
-  const n = Number(v);
+  /* 日本語キーボードだと全角で入ることがある（１８ や －１８）。
+     半角に直してから数値にする */
+  const s = String(v)
+    .replace(/[０-９]/g, function (c) {
+      return String.fromCharCode(c.charCodeAt(0) - 0xfee0);
+    })
+    .replace(/[－ー−‐]/g, '-')
+    .replace(/[．。]/g, '.')
+    .trim();
+  if (s === '') return null;
+  const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 

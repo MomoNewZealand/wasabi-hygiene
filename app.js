@@ -29,6 +29,7 @@ const S = {
 
 const app = document.getElementById('app');
 
+
 /* ---------- 送れなかった記録をためておく箱 ---------- */
 
 /* キッチンカーは電波が届かない場所がある。
@@ -149,10 +150,24 @@ function pendingFor(timing) {
    画面を組み立てる
    =========================================================== */
 
+let rendering = false;
+
 function render() {
-  if (S.screen === 'sites') return renderSites();
-  if (S.screen === 'form') return renderForm();
-  return renderHome();
+  /* 画面を作り直すと、いま入力中の欄がいったん消える。
+     消えるときに blur が走り、その中からもう一度ここへ戻ってくることがある。
+     二重に作り直すと、作りかけの画面を壊してしまい
+     （NotFoundError）、以降ボタンが効かなくなる。
+     外側の作り直しが中身を最新の状態から組み直しているので、
+     内側の呼び出しは何もしないでよい */
+  if (rendering) return;
+  rendering = true;
+  try {
+    if (S.screen === 'sites') return renderSites();
+    if (S.screen === 'form') return renderForm();
+    return renderHome();
+  } finally {
+    rendering = false;
+  }
 }
 
 /* ---------- 拠点えらび（QR に拠点が入っていないとき） ---------- */
@@ -470,19 +485,23 @@ function itemCard(item, site, hideNo) {
       '<span class="temp-ico">' +
       icon('thermo') +
       '</span>' +
-      '<input type="number" inputmode="decimal" step="0.1" class="temp-in" data-temp="' +
+      /* iPhone のテンキーにはマイナスキーが無い（Android には有る）。
+         冷凍庫はいつもマイナスなので、± ボタンで符号を入れられるようにする。
+         type="number" だと「-」だけの途中の状態を持てないので text にしてある */
+      '<button type="button" class="temp-sign" data-sign="' +
+      esc(item.id) +
+      '" aria-label="プラスとマイナスを切り替える">±</button>' +
+      '<input type="text" inputmode="decimal" class="temp-in" data-temp="' +
       esc(item.id) +
       '" value="' +
-      (n == null ? '' : esc(n)) +
+      (v == null ? '' : esc(v)) +
       '" placeholder="--">' +
       '<span class="temp-unit">℃</span>' +
       '<span class="temp-limit">目安 ' +
       esc(item.limitText) +
       '</span>' +
       '</div>' +
-      (over
-        ? '<p class="over-msg">' + icon('alert') + '目安を超えています。下に対応を書いてください。</p>'
-        : '');
+      '<p class="over-msg">' + icon('alert') + '目安を超えています。下に対応を書いてください。</p>';
   } else {
     const opts = [{ v: '良', cls: 'ok' }, { v: '否', cls: 'ng' }];
     if (item.type === 'goodNA') opts.push({ v: '該当なし', cls: 'na', label: item.naLabel });
@@ -508,7 +527,12 @@ function itemCard(item, site, hideNo) {
   }
 
   const needNote = ngNeeded(item, v);
-  const noteHtml = needNote
+
+  /* 「対応を書く欄」は、要るときだけ作るのではなく、いつも作っておいて
+     見える・見えないだけを切り替える（.item.is-ng で出し分け）。
+     入力中に欄が増えたり減ったりすると、そのたびに画面を組み直すことになり、
+     押そうとしたボタンが入れ替わって押せなくなるため */
+  const noteHtml = hasNg(item)
     ? '<div class="ng-box">' +
       '<label for="ng-' +
       esc(item.id) +
@@ -590,12 +614,37 @@ function bindForm() {
   });
 
   app.querySelectorAll('[data-temp]').forEach(function (i) {
-    // 打っている途中で作り直すとカーソルが飛ぶので、入力が終わってから作り直す
+    const item = ITEM_BY_ID[i.dataset.temp];
+
+    /* 打っている最中に画面ごと作り直すと、カーソルが飛んだり、
+       次に触った欄が入れ替わって入力が消えたりする。
+       打っている間は、その場の見た目だけを直す */
     i.addEventListener('input', function () {
       S.values[i.dataset.temp] = i.value;
+      paintTemp(i, item);
     });
-    i.addEventListener('blur', function () {
-      keepScroll(render);
+  });
+
+  /* ± ボタン。いまの値の符号をひっくり返す */
+  app.querySelectorAll('[data-sign]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      const id = b.dataset.sign;
+      const input = app.querySelector('[data-temp="' + id + '"]');
+      if (!input) return;
+
+      const raw = String(input.value || '').trim();
+      const flipped = raw.charAt(0) === '-' ? raw.slice(1) : '-' + raw;
+      input.value = flipped;
+      S.values[id] = flipped;
+      paintTemp(input, ITEM_BY_ID[id]);
+
+      /* そのまま続きを打てるように、カーソルを末尾に戻しておく */
+      input.focus();
+      try {
+        input.setSelectionRange(flipped.length, flipped.length);
+      } catch (e) {
+        /* カーソル位置を動かせない端末でも、入力自体はできる */
+      }
     });
   });
 
@@ -634,6 +683,22 @@ function bindForm() {
     e.preventDefault();
     submit();
   });
+}
+
+/**
+ * 温度の欄の見た目（入力ずみの枠・目安超えの赤）を、その場で直す。
+ * 画面ごと作り直すと、打っている最中に欄が入れ替わってしまうので、
+ * ここではクラスの付け外しだけで済ませる。
+ */
+function paintTemp(input, item) {
+  const ng = ngNeeded(item, input.value);
+  const card = input.closest('.item');
+  if (card) {
+    card.classList.toggle('is-filled', isFilled(item, input.value));
+    card.classList.toggle('is-ng', ng);
+  }
+  const row = input.closest('.temp-row');
+  if (row) row.classList.toggle('over', ng);
 }
 
 /** 作り直しても、見ていた位置が変わらないようにする */

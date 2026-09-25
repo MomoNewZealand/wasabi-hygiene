@@ -403,6 +403,19 @@ body.admin .app-head { background: var(--green); }
   flex-wrap: wrap;
 }
 .temp-ico { color: var(--wait); font-size: 22px; }
+.temp-sign {
+  flex: none;
+  width: 50px;
+  min-height: 50px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r-s);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.temp-sign:active { background: var(--green-l); }
+
 .temp-in {
   width: 108px;
   border: 1.5px solid var(--line);
@@ -418,7 +431,6 @@ body.admin .app-head { background: var(--green); }
 .temp-row.over .temp-in { border-color: var(--danger); color: var(--danger); }
 
 .over-msg {
-  display: flex;
   align-items: center;
   gap: 5px;
   color: var(--danger);
@@ -427,7 +439,13 @@ body.admin .app-head { background: var(--green); }
   margin-top: 8px;
 }
 
-/* 「否」だったときの対応 */
+/* 「否」だったときの対応。
+   いつも作っておいて、見える・見えないだけを切り替える。
+   入力中に欄が増えたり減ったりしないので、画面を組み直さずに済む */
+
+.ng-box, .over-msg { display: none; }
+.item.is-ng .ng-box { display: block; }
+.item.is-ng .over-msg { display: flex; }
 
 .ng-box {
   margin-top: 12px;
